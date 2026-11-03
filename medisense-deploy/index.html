@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediSense Cardio Quality Check</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --primary: #1f6feb;
+        --primary-soft: #eaf2ff;
+        --success: #1ca76a;
+        --warning: #f39c12;
+        --danger: #e74c3c;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #dfe7f1;
+      }
+
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--primary);
+      }
+
+      .button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        background: var(--primary);
+        color: white;
+        font-size: 15px;
+        cursor: pointer;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 24px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      }
+
+      .upload-box {
+        padding: 28px;
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .upload-box h2 {
+        margin: 0 0 10px;
+        font-size: 32px;
+      }
+
+      .upload-box p {
+        margin: 0 0 20px;
+        color: var(--muted);
+      }
+
+      .dropzone {
+        width: 100%;
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 36px 20px;
+        text-align: center;
+        background: #fafcff;
+        cursor: pointer;
+      }
+
+      .image-preview {
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #eef5ff;
+        border: 1px solid var(--border);
+      }
+
+      .image-preview img {
+        display: block;
+        width: 100%;
+        height: 340px;
+        object-fit: cover;
+      }
+
+      .metrics {
+        padding: 20px;
+      }
+
+      .metrics h3 {
+        margin-top: 0;
+      }
+
+      .metric-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .metric {
+        background: var(--primary-soft);
+        border: 1px solid #d6e7ff;
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .metric-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .metric-name {
+        font-weight: 600;
+      }
+
+      .tag {
+        display: inline-block;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-weight: bold;
+      }
+
+      .success { background: #eafaf3; color: var(--success); }
+      .warning { background: #fff5e6; color: var(--warning); }
+      .danger { background: #fdeceb; color: var(--danger); }
+
+      .score {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--text);
+      }
+
+      .status-box {
+        margin-top: 22px;
+        padding: 18px 20px;
+        border-radius: 14px;
+        background: #eefaf4;
+        border: 1px solid #cfeee0;
+      }
+
+      .status-box[data-state="error"] {
+        background: #fff0ef;
+        border-color: #f3c7c3;
+      }
+
+      .status-box[data-state="loading"] {
+        background: #eef4ff;
+        border-color: #cbdcff;
+      }
+
+      .status-box strong {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+
+      .notice {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .file-name {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      .empty-preview {
+        height: 340px;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .button:disabled {
+        opacity: 0.65;
+        cursor: wait;
+      }
+
+      .issues {
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .issues h3 {
+        margin-top: 0;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="topbar">
+        <div class="brand">MediSense Cardio</div>
+        <button id="uploadButton" class="button" type="button">Upload Scan</button>
+      </div>
+
+      <div class="grid">
+        <div class="card upload-box">
+          <h2>Image Quality Proxy</h2>
+          <p>Upload an image to calculate quality checks from its actual pixels.</p>
+
+          <label for="fileInput" class="dropzone">
+            <div>Drop image here or click to upload</div>
+          </label>
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/tiff,image/bmp,image/webp" />
+          <div id="fileName" class="file-name">Uploads are processed for analysis and not stored as records.</div>
+        </div>
+
+        <div class="card image-preview">
+          <div id="emptyPreview" class="empty-preview">Your uploaded image preview will appear here.</div>
+          <img id="previewImg" alt="Uploaded image preview" hidden />
+        </div>
+      </div>
+
+      <div class="card metrics">
+        <h3>Quality Metrics</h3>
+
+        <div class="metric-list">
+          <div class="metric">
+            <div class="metric-top">
+              <div class="metric-name">Blur</div>
+              <span id="blurStatus" class="tag">Waiting</span>
+            </div>
+            <div id="blurScore" class="score">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-top">
+              <div class="metric-name">Skew</div>
+              <span id="skewStatus" class="tag">Waiting</span>
+            </div>
+            <div id="skewScore" class="score">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-top">
+              <div class="metric-name">Resolution</div>
+              <span id="resolutionStatus" class="tag">Waiting</span>
+            </div>
+            <div id="resolutionScore" class="score">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-top">
+              <div class="metric-name">Contrast</div>
+              <span id="contrastStatus" class="tag">Waiting</span>
+            </div>
+            <div id="contrastScore" class="score">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-top">
+              <div class="metric-name">Blockiness</div>
+              <span id="blockinessStatus" class="tag">Waiting</span>
+            </div>
+            <div id="blockinessScore" class="score">—</div>
+          </div>
+        </div>
+
+        <div id="resultStatus" class="status-box" role="status" aria-live="polite">
+          <strong id="verdict">Waiting for an image</strong>
+          <span id="summary">Upload a scan to run the five quality proxy checks.</span>
+          <p id="notice" class="notice"></p>
+        </div>
+      </div>
+
+      <div class="card issues">
+        <h3>Detected Issues</h3>
+        <ul id="issues"><li>Results will appear after the image is analyzed.</li></ul>
+      </div>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      const previewImg = document.getElementById('previewImg');
+      const uploadButton = document.getElementById('uploadButton');
+      let previewUrl = null;
+      const metricNames = ['blur', 'skew', 'resolution', 'contrast', 'blockiness'];
+
+      uploadButton.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) analyzeFile(fileInput.files[0]);
+      });
+
+      for (const eventName of ['dragenter', 'dragover']) {
+        document.querySelector('.dropzone').addEventListener(eventName, (event) => {
+          event.preventDefault();
+        });
+      }
+      document.querySelector('.dropzone').addEventListener('drop', (event) => {
+        event.preventDefault();
+        const file = event.dataTransfer.files[0];
+        if (file) analyzeFile(file);
+      });
+
+      function setStatus(message, state) {
+        document.getElementById('resultStatus').dataset.state = state;
+        document.getElementById('verdict').textContent = message;
+      }
+
+      function renderMetric(name, metric) {
+        const scoreElement = document.getElementById(`${name}Score`);
+        const statusElement = document.getElementById(`${name}Status`);
+        scoreElement.textContent = metric.score === null ? '—' : metric.score;
+        statusElement.textContent = metric.status;
+        statusElement.className = 'tag';
+        if (metric.status === 'Good') statusElement.classList.add('success');
+        else if (metric.status === 'Review' || metric.status === 'Unavailable') {
+          statusElement.classList.add('warning');
+        } else if (metric.status === 'Poor') statusElement.classList.add('danger');
+      }
+
+      async function analyzeFile(file) {
+        if (file.type && !file.type.startsWith('image/')) {
+          setStatus('Please choose an image file', 'error');
+          document.getElementById('summary').textContent =
+            'Supported formats: PNG, JPEG, TIFF, BMP, and WebP.';
+          return;
+        }
+
+        document.getElementById('fileName').textContent =
+          `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        previewImg.src = previewUrl;
+        previewImg.hidden = false;
+        document.getElementById('emptyPreview').hidden = true;
+
+        const formData = new FormData();
+        formData.append('image', file);
+        uploadButton.disabled = true;
+        setStatus('Analyzing uploaded image…', 'loading');
+        document.getElementById('summary').textContent =
+          'Running blur, skew, resolution, contrast, and blockiness checks.';
+        document.getElementById('notice').textContent = '';
+
+        try {
+          const response = await fetch('/api/analyze', { method: 'POST', body: formData });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Analysis failed. Please try another image.');
+
+          for (const name of metricNames) renderMetric(name, result.metrics[name]);
+          setStatus(`${result.verdict} · ${result.overall_score}/100`, 'success');
+          document.getElementById('summary').textContent =
+            `Analyzed ${result.width} × ${result.height} pixels. This is an image-quality proxy result, not a medical assessment.`;
+          document.getElementById('notice').textContent = result.notice;
+          const issues = document.getElementById('issues');
+          issues.replaceChildren(...result.issues.map((message) => {
+            const item = document.createElement('li');
+            item.textContent = message;
+            return item;
+          }));
+        } catch (error) {
+          setStatus('Could not analyze this image', 'error');
+          document.getElementById('summary').textContent = error.message;
+          document.getElementById('notice').textContent =
+            'Check that the backend is running, then try again.';
+        } finally {
+          uploadButton.disabled = false;
+        }
+      }
+    </script>
+  </body>
+</html>

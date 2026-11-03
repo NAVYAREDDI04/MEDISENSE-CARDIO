@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: medisense-cardio-quality
+    runtime: python
+    rootDir: medisense-deploy
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
