@@ -331,6 +331,9 @@
       const uploadButton = document.getElementById('uploadButton');
       let previewUrl = null;
       const metricNames = ['blur', 'skew', 'resolution', 'contrast', 'blockiness'];
+      const analyzeUrl = location.hostname === 'medicardio.netlify.app'
+        ? 'https://navyareddi04.pythonanywhere.com/api/analyze'
+        : '/api/analyze';
 
       uploadButton.addEventListener('click', () => fileInput.click());
       fileInput.addEventListener('change', () => {
@@ -390,7 +393,7 @@
         document.getElementById('notice').textContent = '';
 
         try {
-          const response = await fetch('/api/analyze', { method: 'POST', body: formData });
+          const response = await fetch(analyzeUrl, { method: 'POST', body: formData });
           const result = await response.json();
           if (!response.ok) throw new Error(result.error || 'Analysis failed. Please try another image.');
 

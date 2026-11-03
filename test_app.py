@@ -24,9 +24,14 @@ class QualityApiTests(unittest.TestCase):
             "/api/analyze",
             data={"image": (io.BytesIO(encoded.tobytes()), "scan.png")},
             content_type="multipart/form-data",
+            headers={"Origin": "https://medicardio.netlify.app"},
         )
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"],
+            "https://medicardio.netlify.app",
+        )
         body = response.get_json()
         self.assertEqual((body["width"], body["height"]), (1000, 800))
         self.assertEqual(
@@ -35,6 +40,21 @@ class QualityApiTests(unittest.TestCase):
         )
         self.assertEqual(body["metrics"]["resolution"]["score"], 40)
         self.assertIn("heuristic", body["notice"])
+
+    def test_preflight_allows_netlify_origin(self):
+        response = self.client.options(
+            "/api/analyze",
+            headers={
+                "Origin": "https://medicardio.netlify.app",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"],
+            "https://medicardio.netlify.app",
+        )
 
     def test_rejects_non_image_upload(self):
         response = self.client.post(

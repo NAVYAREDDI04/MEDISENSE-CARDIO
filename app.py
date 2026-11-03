@@ -17,9 +17,20 @@ ROOT = Path(__file__).resolve().parent
 ALLOWED_FORMATS = {"BMP", "JPEG", "PNG", "TIFF", "WEBP"}
 MAX_IMAGE_PIXELS = 20_000_000
 MAX_IMAGE_BYTES = 12 * 1024 * 1024
+ALLOWED_CORS_ORIGIN = "https://medicardio.netlify.app"
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_IMAGE_BYTES
+
+
+@app.after_request
+def add_cors_headers(response):
+    if request.headers.get("Origin") == ALLOWED_CORS_ORIGIN:
+        response.headers["Access-Control-Allow-Origin"] = ALLOWED_CORS_ORIGIN
+        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers.add("Vary", "Origin")
+    return response
 
 
 def _gray(image: np.ndarray) -> np.ndarray:
@@ -184,8 +195,11 @@ def health():
     return jsonify({"status": "ok"})
 
 
-@app.post("/api/analyze")
+@app.route("/api/analyze", methods=["POST", "OPTIONS"])
 def analyze_upload():
+    if request.method == "OPTIONS":
+        return "", 204
+
     uploaded = request.files.get("image")
     if uploaded is None or not uploaded.filename:
         return jsonify({"error": "Choose an image file to analyze."}), 400
